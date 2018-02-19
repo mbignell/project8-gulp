@@ -1,16 +1,19 @@
 'use strict';
 
+// Creates variables for all the various gulp plugins
 const gulp = require('gulp'),
     concat = require('gulp-concat'),
     uglify = require('gulp-uglify'),
     rename = require('gulp-rename'),
       sass = require('gulp-sass'),
+  cleanCSS = require('gulp-clean-css'),
       maps = require('gulp-sourcemaps'),
   imagemin = require('gulp-imagemin'),
        del = require('del'),
-browserSync = require('browser-sync').create();
+       runSequence = require('run-sequence'),
+       browserSync = require('browser-sync').create();
 
-gulp.task("scripts", ["clean"], function() {
+gulp.task("scripts", function() {
   console.log('doing javascriptin');
   gulp.src([
     'js/global.js',
@@ -18,78 +21,69 @@ gulp.task("scripts", ["clean"], function() {
     'js/circle/circle.js'
   ])
   .pipe(maps.init())
-  .pipe(concat('all.js'))
-  .pipe(maps.write('./'))
-  .pipe(gulp.dest('dist/scripts'))
-
-  gulp.src("js/all.js")
-  .pipe(uglify())
-  .pipe(rename('all.min.js'))
-  .pipe(gulp.dest('dist/scripts'))
-  //compile files
-  //concatenate and minify into all.min.css into dist/scripts folder
+  .pipe(concat('all.js'))                    //compiles js in one file
+  .pipe(uglify())                            //minifies js
+  .pipe(rename('all.min.js'))                //renames file
+  .pipe(maps.write('./'))                    //writes map
+  .pipe(gulp.dest('dist/scripts'))           //moves to dist/
 });
 
-// gulp.task("concatenate", ["clean"], function() {
-//   gulp.src([
-//     'js/global.js',
-//     'js/circle/autogrow.js',
-//     'js/circle/circle.js'
-//   ])
-//   // .pipe(maps.init())
-//   .pipe(concat('all.js'))
-//   // .pipe(maps.write('./'))
-//   .pipe(gulp.dest('dist/scripts'))
-// });
-
-gulp.task("styles", ["clean"], function() {
-  console.log('doing cssin');
-  //compile files
-  //concatenate and minify into all.min.css into dist/styles folder
+gulp.task("styles", function() {
   gulp.src('sass/global.scss')
-  .pipe(maps.init())
-  .pipe(sass())
-  .pipe(maps.write('./'))
-  .pipe(gulp.dest('dist/styles'))
-  .pipe(browserSync.reload({
+  .pipe(maps.init())                         //creates a source map
+  .pipe(sass())                              //compiles scss to css
+  .pipe(cleanCSS({compatibility: 'ie8'}))    //minifies css
+  .pipe(rename('global.min.css'))            //renames file
+  .pipe(maps.write('./'))                    //writes the map file
+  .pipe(gulp.dest('dist/styles'))            //moves map and compiled files to dist/
+  .pipe(browserSync.reload({                 //sets up browser reloading
       stream: true
     }))
 });
 
-gulp.task("images", ["clean"], function() {
+gulp.task("images", function() {
   gulp.src('images/*')
-       .pipe(imagemin())
-       .pipe(gulp.dest('dist/images'));
-  console.log('images call');
-  //optimizes file size
-  //dist/content folder
+       .pipe(imagemin())                     //optimizes file size
+       .pipe(gulp.dest('dist/content'));     //moves images to dist/content folder
+});
+
+gulp.task("moveIndex", function() {
+  gulp.src([
+    'index.html',
+  ])
+  .pipe(gulp.dest('dist/'))
+});
+
+gulp.task("moveIcons", function() {
+  gulp.src([
+    'icons/*'], {
+        base: './'
+  }).pipe(gulp.dest('dist/'))
 });
 
 gulp.task("clean", function() {
-  // return del([
-  //   'dist/*'
-  // ]);
-  console.log('deleted all old files sure ok');
   // deletes all folders in dist
+  return del(['dist/**']);
 });
 
-gulp.task("build", ["scripts","styles","images","watch"], function() {
+gulp.task("build", function(callback) {
   console.log('Building the application.');
-  return gulp.src("css/application.css",)
+  runSequence("clean",
+              ["scripts","styles","images","moveIndex","moveIcons"],
+              "watch",
+              callback);
 });
 
 
 gulp.task("default", ["build"], function() {
   console.log('Application has been built.');
-
 });
 
 // project reloads
-//??????
 gulp.task('browserSync', function() {
   browserSync.init({
     server: {
-      baseDir: './'
+      baseDir: './dist/'
     },
   })
 })
