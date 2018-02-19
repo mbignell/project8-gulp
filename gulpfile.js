@@ -21,22 +21,22 @@ gulp.task("scripts", function() {
     'js/circle/circle.js'
   ])
   .pipe(maps.init())
-  .pipe(concat('all.js'))                    //compiles js in one file
-  .pipe(uglify())                            //minifies js
-  .pipe(rename('all.min.js'))                //renames file
-  .pipe(maps.write('./'))                    //writes map
-  .pipe(gulp.dest('dist/scripts'))           //moves to dist/
+  .pipe(concat('all.js'))                    // compiles js in one file
+  .pipe(uglify())                            // minifies js
+  .pipe(rename('all.min.js'))                // renames file
+  .pipe(maps.write('./'))                    // writes map
+  .pipe(gulp.dest('dist/scripts'))           // moves to dist/
 });
 
 gulp.task("styles", function() {
   gulp.src('sass/global.scss')
-  .pipe(maps.init())                         //creates a source map
-  .pipe(sass())                              //compiles scss to css
-  .pipe(cleanCSS({compatibility: 'ie8'}))    //minifies css
-  .pipe(rename('global.min.css'))            //renames file
-  .pipe(maps.write('./'))                    //writes the map file
-  .pipe(gulp.dest('dist/styles'))            //moves map and compiled files to dist/
-  .pipe(browserSync.reload({                 //sets up browser reloading
+  .pipe(maps.init())                         // creates a source map
+  .pipe(sass())                              // compiles scss to css
+  .pipe(cleanCSS({compatibility: 'ie8'}))    // minifies css
+  .pipe(rename('global.min.css'))            // renames file
+  .pipe(maps.write('./'))                    // writes the map file
+  .pipe(gulp.dest('dist/styles'))            // moves map and compiled files to dist/
+  .pipe(browserSync.reload({                 // sets up browser reloading
       stream: true
     }))
 });
@@ -49,47 +49,43 @@ gulp.task("images", function() {
 
 gulp.task("moveIndex", function() {
   gulp.src([
-    'index.html',
+    'index.html',                            //  moves index to dist/
   ])
   .pipe(gulp.dest('dist/'))
 });
 
 gulp.task("moveIcons", function() {
   gulp.src([
-    'icons/*'], {
+    'icons/*'], {                            //  moves icons to dist/
         base: './'
   }).pipe(gulp.dest('dist/'))
 });
 
 gulp.task("clean", function() {
-  // deletes all folders in dist
-  return del(['dist/**']);
+  return del(['dist/**']);                   // deletes all folders in dist
 });
 
-gulp.task("build", function(callback) {
+gulp.task("build", function() {
   console.log('Building the application.');
-  runSequence("clean",
+  runSequence("clean",                       // runs tasks in sequence
               ["scripts","styles","images","moveIndex","moveIcons"],
-              "watch",
-              callback);
+              "watch");
 });
-
 
 gulp.task("default", ["build"], function() {
   console.log('Application has been built.');
 });
 
-// project reloads
 gulp.task('browserSync', function() {
-  browserSync.init({
+  browserSync.init({                        //  creates server that watches for changes
     server: {
       baseDir: './dist/'
     },
   })
 })
 
-// continuously watch for scss changes
-// when there is a change, run gulp styles
+// Continuously watch for scss changes
+// When there is a change, run gulp styles
 gulp.task('watch', ['browserSync', 'styles'], function (){
   gulp.watch('sass/**.scss', ['styles']);
 })
