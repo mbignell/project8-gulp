@@ -15,7 +15,7 @@ const gulp = require('gulp'),
 
 gulp.task("scripts", function() {
   console.log('doing javascriptin');
-  gulp.src([
+  return gulp.src([
     'js/global.js',
     'js/circle/autogrow.js',
     'js/circle/circle.js'
@@ -29,7 +29,7 @@ gulp.task("scripts", function() {
 });
 
 gulp.task("styles", function() {
-  gulp.src('sass/global.scss')
+  return gulp.src('sass/global.scss')
   .pipe(maps.init())                         // creates a source map
   .pipe(sass())                              // compiles scss to css
   .pipe(cleanCSS({compatibility: 'ie8'}))    // minifies css
@@ -42,20 +42,20 @@ gulp.task("styles", function() {
 });
 
 gulp.task("images", function() {
-  gulp.src('images/*')
+  return gulp.src('images/*')
        .pipe(imagemin())                     //optimizes file size
        .pipe(gulp.dest('dist/content'));     //moves images to dist/content folder
 });
 
 gulp.task("moveIndex", function() {
-  gulp.src([
+  return gulp.src([
     'index.html',                            //  moves index to dist/
   ])
   .pipe(gulp.dest('dist/'))
 });
 
 gulp.task("moveIcons", function() {
-  gulp.src([
+  return gulp.src([
     'icons/*'], {                            //  moves icons to dist/
         base: './'
   }).pipe(gulp.dest('dist/'))
@@ -65,15 +65,13 @@ gulp.task("clean", function() {
   return del(['dist/**']);                   // deletes all folders in dist
 });
 
-gulp.task("build", function() {
-  console.log('Building the application.');
-  runSequence("clean",                       // runs tasks in sequence
-              ["scripts","styles","images","moveIndex","moveIcons"],
+gulp.task("build", function() {              // runs tasks in sequence
+  runSequence("clean",
+              ["scripts","styles","moveIndex","moveIcons","images"],
               "watch");
 });
 
 gulp.task("default", ["build"], function() {
-  console.log('Application has been built.');
 });
 
 gulp.task('browserSync', function() {
